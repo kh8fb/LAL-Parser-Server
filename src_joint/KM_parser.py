@@ -27,10 +27,10 @@ pyximport.install(setup_args={"include_dirs": np.get_include()})
 #import src_dep_const_test.chart_helper as chart_helper
 import hpsg_decoder
 import const_decoder
-import makehp
-import utils
+from .makehp import HParams
+from .utils import load_embedding_dict
 
-import trees
+from .trees import InternalParseNode, LeafParseNode 
 
 START = "<START>"
 STOP = "<STOP>"
@@ -1323,7 +1323,7 @@ class ChartParser(nn.Module):
         if not hparams.use_bert_only:
 
             if hparams.embedding_type != 'random' and hparams.use_words:
-                embedd_dict, embedd_dim = utils.load_embedding_dict(hparams.embedding_type, hparams.embedding_path)
+                embedd_dict, embedd_dim = load_embedding_dict(hparams.embedding_type, hparams.embedding_path)
                 scale = np.sqrt(3.0 / embedd_dim)
                 table = np.zeros([word_vocab.size, embedd_dim], dtype=np.float32)
                 oov = 0
@@ -1448,7 +1448,7 @@ class ChartParser(nn.Module):
             if param not in hparams:
                 hparams[param] = 64
 
-        spec['hparams'] = makehp.HParams(**hparams)
+        spec['hparams'] = HParams(**hparams)
         res = cls(**spec)
         if use_cuda:
             res.cpu()
@@ -1972,19 +1972,19 @@ class ChartParser(nn.Module):
             if (i + 1) >= j:
                 tag, word = sentence[i]
                 if type is not None:
-                    tree = trees.LeafParseNode(int(i), tag, word, p_father[i], self.type_vocab.value(type[i]))
+                    tree = LeafParseNode(int(i), tag, word, p_father[i], self.type_vocab.value(type[i]))
                 else:
-                    tree = trees.LeafParseNode(int(i), tag, word, p_father[i], self.type_vocab.value(p_type[i]))
+                    tree = LeafParseNode(int(i), tag, word, p_father[i], self.type_vocab.value(p_type[i]))
                 if label:
                     assert label[0] != Sub_Head
-                    tree = trees.InternalParseNode(label, [tree])
+                    tree = InternalParseNode(label, [tree])
                 return [tree]
             else:
                 left_trees = make_tree()
                 right_trees = make_tree()
                 children = left_trees + right_trees
                 if label and label[0] != Sub_Head:
-                    return [trees.InternalParseNode(label, children)]
+                    return [InternalParseNode(label, children)]
                 else:
                     return children
 

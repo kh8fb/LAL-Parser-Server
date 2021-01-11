@@ -4,7 +4,7 @@ import pickle
 import numpy as np
 import gzip
 
-import utils_io
+from .utils_io import DIGIT_RE
 
 
 def load_embedding_dict(embedding, embedding_path, normalize_digits= False):
@@ -33,7 +33,7 @@ def load_embedding_dict(embedding, embedding_path, normalize_digits= False):
                     assert (embedd_dim + 1 == len(tokens))
                 embedd = np.empty([1, embedd_dim], dtype=np.float32)
                 embedd[:] = tokens[1:]
-                word = utils_io.DIGIT_RE.sub(b"0", tokens[0]) if normalize_digits else tokens[0]
+                word = DIGIT_RE.sub(b"0", tokens[0]) if normalize_digits else tokens[0]
                 embedd_dict[word] = embedd
         return embedd_dict, embedd_dim
     elif embedding == 'sskip':
@@ -60,7 +60,7 @@ def load_embedding_dict(embedding, embedding_path, normalize_digits= False):
                     start = len(tokens) - embedd_dim
                     word = ' '.join(tokens[0:start])
                     embedd[:] = tokens[start:]
-                    word = utils_io.DIGIT_RE.sub(b"0", word) if normalize_digits else word
+                    word = DIGIT_RE.sub(b"0", word) if normalize_digits else word
                     embedd_dict[word] = embedd
                 except UnicodeDecodeError:
                     continue

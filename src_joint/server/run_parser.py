@@ -32,7 +32,10 @@ def load_model(model_path, cuda):
         Model with the preloaded weights.
     """
     if cuda:
-        return torch.load(load_path)
+        if torch.cuda.is_available():
+            return torch.load(load_path)
+        else:
+            raise AttributeError("Cuda flag was specified but no CUDA device available")
     else:
         return torch.load(load_path, map_location=lambda storage, location: storage)
 
