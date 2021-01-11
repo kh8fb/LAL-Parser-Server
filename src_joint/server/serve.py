@@ -10,8 +10,8 @@ import torch
 
 
 from . import cli_main
-from run_parser import load_model
-from run_parser import run_parser
+from .run_parser import load_model
+from .run_parser import run_parser
 
 app = Flask(__name__)
 MODEL_DICT = {}
@@ -63,7 +63,7 @@ def run_model():
     "-mp",
     "--model-path",
     required=True,
-    help="Path to pretrained LAL model")
+    help="Path to pretrained LAL model"
 )
 def serve(
         host,

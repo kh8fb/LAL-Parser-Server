@@ -10,8 +10,7 @@ import time
 import torch
 import torch.optim.lr_scheduler
 
-import .KM_parser
-tokens = KM_parser
+from ..KM_parser import ChartParser
 import nltk
 from nltk import word_tokenize, sent_tokenize
 from tqdm import tqdm

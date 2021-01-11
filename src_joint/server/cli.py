@@ -16,4 +16,4 @@ if __name__ == "__main__":
     else:
         logbook.StderrHandler(logbook.INFO).push_application()
     logbook.compat.redirect_logging()
-    cli_main(prog_name="lal-parse-server")
+    cli_main(prog_name="lal-parser-server")
