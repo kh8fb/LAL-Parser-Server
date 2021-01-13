@@ -3,6 +3,7 @@ Loads and runs the parser for LAL-parsing
 """
 
 import argparse
+import collections
 import itertools
 import os.path
 import time
@@ -10,11 +11,13 @@ import time
 import torch
 import torch.optim.lr_scheduler
 
-from ..KM_parser import ChartParser
+from ..KM_parser import ChartParser, use_cuda, BERT_TOKEN_MAPPING
 import nltk
 from nltk import word_tokenize, sent_tokenize
 from tqdm import tqdm
+from .vocabulary import vocabulary
 
+REVERSE_TOKEN_MAPPING = dict([(value, key) for key, value in BERT_TOKEN_MAPPING.items()])
 
 def load_model(model_path, cuda):
     """
@@ -31,13 +34,21 @@ def load_model(model_path, cuda):
     model: torch.model
         Model with the preloaded weights.
     """
+    if use_cuda:
+        return torch.load(model_path)
+    else:
+        return torch.load(model_path, map_location=lambda storage, location: storage)
+
     if cuda:
-        if torch.cuda.is_available():
-            return torch.load(load_path)
+        if use_cuda:
+            return torch.load(model_path)
         else:
             raise AttributeError("Cuda flag was specified but no CUDA device available")
     else:
-        return torch.load(load_path, map_location=lambda storage, location: storage)
+        if use_cuda:
+            # must run this in order to properly load model
+            pass
+        return torch.load(model_path, map_location=lambda storage, location: storage)
 
 
 def run_parser(info, sequences):
@@ -58,7 +69,7 @@ def run_parser(info, sequences):
         parsed tree string of the sentence as a the value.
     """
     assert 'hparams' in info['spec'], "Older savefiles not supported"
-    parser = KM_parser.ChartParser.from_spec(info['spec'], info['state_dict'])
+    parser = ChartParser.from_spec(info['spec'], info['state_dict'])
     parser.eval()
     print("Parsing sentences...")
 
@@ -104,4 +115,4 @@ def run_parser(info, sequences):
     
     parsed_sentences = [tree.convert().linearize() for tree in syntree_pred]
     return_dict = dict(zip(ids, parsed_sentences))
-    return returned_dict
+    return return_dict

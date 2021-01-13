@@ -4,7 +4,7 @@ Server for obtaining parsed output using the downloaded LAL-Parser model.
 
 import click
 from collections import OrderedDict
-from flask import Flask, request, send_file
+from flask import Flask, request, Response, send_file
 import json
 import torch
 
@@ -12,6 +12,7 @@ import torch
 from . import cli_main
 from .run_parser import load_model
 from .run_parser import run_parser
+from .vocabulary import vocabulary
 
 app = Flask(__name__)
 MODEL_DICT = {}
@@ -25,14 +26,14 @@ def run_model():
     if request.method == 'POST':
         #data = request.get_json(force=True)
         print(request)
+        print("ATTEMPTING TO PRINT DATA \n")
         data = request.json
+        print("DATA: ", data)
 
         sequences = data["sequences"]
 
         dependencies = run_parser(MODEL_DICT["model"],
                                 sequences)
-
-        temp_bytes, temp_gzip = BytesIO(), BytesIO()
 
         content = json.dumps({"Dependencies": dependencies})
         return Response(content, mimetype="/application/json",headers={'Content-Disposition':'attatchment;filename=returned_dependencies.json'})
