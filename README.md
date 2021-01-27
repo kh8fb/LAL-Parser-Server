@@ -1,6 +1,6 @@
 # LAL Parser Server
 
-This is a Flask-based server intended for running and receiving parsed sentences from the trained [LAL Parser by Khalil Mrini](https://github.com/KhalilMrini/LAL-Parser) .  This package goes with a  Singularity container definition script [here](https://github.com/kh8fb/kh8fb_singularity/tree/master/definition_scripts).  Below are some helpful installation steps and tricks.  
+This is a Flask-based server intended for running and receiving constituency parsing or dependency parsing from the trained [LAL Parser by Khalil Mrini](https://github.com/KhalilMrini/LAL-Parser).  This package goes with a Singularity container definition script [here](https://github.com/kh8fb/kh8fb_singularity/tree/master/definition_scripts).  Below are some helpful installation steps.
 
 ## Installation
 
@@ -22,15 +22,15 @@ Now your environment is set up and you're ready to go.
 Finally, download the model from Google Drive with
 
 	 	  >>> pip install gdown
-		      >>> gdown https://drive.google.com/uc?id=1LC5iVcvgksQhNVJ-CbMigqXnPAaquiA2 -O /path/to/model.pt
+		  >>> gdown https://drive.google.com/uc?id=1LC5iVcvgksQhNVJ-CbMigqXnPAaquiA2 -O /path/to/model.pt
 
 ## Usage
 
 Activate the server directly from the command line with 
 
-	 >>> lal-parser-server -mp /path/to/model.pt --cpu
+	 >>> lal-parser-server -mp /path/to/model.pt --cpu --dependency --constituency
 
-This command starts the server and loads the model so that it's ready to go when called upon.  To run with the model on CUDA, use  `--cuda` instead of `--cpu`.   You can also provide additional arguments such as the `--hostname` and  `--port` of the server.
+This command starts the server and loads the model so that it's ready to go when called upon.  To run with the model on CUDA, use  `--cuda` instead of `--cpu`.   You can also provide additional arguments such as the `--hostname` and  `--port` of the server.  The `--constituency` and `--dependency` flags specify whether dependency parsing or constituency or both forms of parsing should be performed on the input sentences.
 
 After the server has been started, you can receive parsed output in another terminal window with the `curl` command.   This parses the each of the input phrases from `test_json.json`  and dumps the JSON for all of the outputs into `my_output.json`
 
@@ -41,12 +41,12 @@ The format of the input JSON should match the following with a "sequences" field
     >>> cat test_json.json
     {"sequences": {"1": "This is the first input phrase.","2": "This is the last and final input phrase?"}}
     >>> cat my_output.json
-    {"Dependencies": {"1": "(S (NP (DT This)) (VP (VBZ is) (NP (DT the) (JJ first) (NN input) (NN phrase))) (. .))", "2": "(S (NP (DT This)) (VP (VBZ is) (NP (DT the) (ADJP (JJ last) (CC and) (JJ final)) (NN input) (NN phrase))) (. ?))"}}
+    {"constituencies": {"1": "(S (NP (DT This)) (VP (VBZ is) (NP (DT the) (JJ first) (NN input) (NN phrase))) (. .))", "2": "(S (NP (DT This)) (VP (VBZ is) (NP (DT the) (ADJP (JJ last) (CC and) (JJ final)) (NN input) (NN phrase))) (. ?))"}, "dependency labels": {"1": ["nsubj", "cop", "det", "amod", "nn", "root", "punct"], "2": ["nsubj", "cop", "det", "amod", "cc", "conj", "nn", "root", "punct"]}, "dependency heads": {"1": [6, 6, 6, 6, 6, 0, 6], "2": [8, 8, 8, 8, 4, 4, 8, 0, 8]}}
 
 
 ## Citation
 
-If you use the Neural Adobe-UCSD Parser, please cite our [paper](https://arxiv.org/abs/1911.03875) as follows:
+#### [Neural Adobe-UCSD Parser](https://arxiv.org/abs/1911.03875)
 ```
 @article{mrini2019rethinking,
   title={Rethinking Self-Attention: An Interpretable Self-Attentive Encoder-Decoder Parser},

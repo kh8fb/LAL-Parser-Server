@@ -26,16 +26,17 @@ def run_model():
     if request.method == 'POST':
         #data = request.get_json(force=True)
         print(request)
-        print("ATTEMPTING TO PRINT DATA \n")
         data = request.json
         print("DATA: ", data)
 
         sequences = data["sequences"]
 
         dependencies = run_parser(MODEL_DICT["model"],
-                                sequences)
+                                  sequences,
+                                  DEPENDENCY,
+                                  CONSTITUENCY)
 
-        content = json.dumps({"Dependencies": dependencies})
+        content = json.dumps(dependencies)
         return Response(content, mimetype="/application/json",headers={'Content-Disposition':'attatchment;filename=returned_dependencies.json'})
 
 
@@ -66,13 +67,27 @@ def run_model():
     required=True,
     help="Path to pretrained LAL model"
 )
+@click.option(
+    "--constituency",
+    is_flag=True,
+    default=False,
+    help="Add constituency parsing to returned JSON",
+)
+@click.option(
+    "--dependency",
+    is_flag=True,
+    default=False,
+    help="Add dependency parsing heads and labels to returned JSON",
+)
 def serve(
         host,
         port,
         cuda,
         model_path,
+        constituency,
+        dependency,
 ):
-    global MODEL_DICT, DEVICE, BASELINE
+    global MODEL_DICT, DEPENDENCY, CONSTITUENCY
 
     try:
         model = load_model(model_path, cuda)        
@@ -80,5 +95,7 @@ def serve(
     except Exception as e:
         print("An Error occurred: ", e)
         raise e
+    DEPENDENCY = dependency
+    CONSTITUENCY = constituency
 
     app.run(host=host, port=port, debug=True)

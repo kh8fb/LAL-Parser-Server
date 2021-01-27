@@ -51,7 +51,7 @@ def load_model(model_path, cuda):
         return torch.load(model_path, map_location=lambda storage, location: storage)
 
 
-def run_parser(info, sequences):
+def run_parser(info, sequences, dependency, constituency):
     """
     Run's the model on each of the sentences in a list of sequences.
 
@@ -62,6 +62,10 @@ def run_parser(info, sequences):
     sequences: dict
         Dictionary with key strings for the "id" and value strings for the
         sentences that are meant to be parsed.
+    dependency: bool
+        Defines whether or not to return dependency parsing results in final dictionary
+    constituency: bool
+        Defines whether or not to return constituency parsing results in final dictionary
     Returns
     -------
     return_dict: dict
@@ -79,28 +83,6 @@ def run_parser(info, sequences):
     pos_tag = 1
     eval_batch_size = 50
 
-    """def save_data(syntree_pred, cun):
-        pred_head = [[leaf.father for leaf in tree.leaves()] for tree in syntree_pred]
-        pred_type = [[leaf.type for leaf in tree.leaves()] for tree in syntree_pred]
-        appent_string = "_" + str(cun) + ".txt"
-        if args.output_path_synconst != '-':
-            with open(args.output_path_synconst + appent_string, 'w') as output_file:
-                for tree in syntree_pred:
-                    output_file.write("{}\n".format(tree.convert().linearize()))
-            print("Output written to:", args.output_path_synconst)
-
-        if args.output_path_syndep != '-':
-            with open(args.output_path_syndep + appent_string, 'w') as output_file:
-                for heads in pred_head:
-                    output_file.write("{}\n".format(heads))
-            print("Output written to:", args.output_path_syndep)
-
-        if args.output_path_synlabel != '-':
-            with open(args.output_path_synlabel + appent_string, 'w') as output_file:
-                for labels in pred_type:
-                    output_file.write("{}\n".format(labels))
-            print("Output written to:", args.output_path_synlabel)"""
-
     syntree_pred = []
     for start_index in tqdm(range(0, len(sentences), eval_batch_size), desc='Parsing sentences'):
         subbatch_sentences = sentences[start_index:start_index+eval_batch_size]
@@ -113,6 +95,13 @@ def run_parser(info, sequences):
         syntree, _ = parser.parse_batch(tagged_sentences)
         syntree_pred.extend(syntree)
     
-    parsed_sentences = [tree.convert().linearize() for tree in syntree_pred]
-    return_dict = dict(zip(ids, parsed_sentences))
+    return_dict = {}
+    depend_heads = [[int(leaf.father) for leaf in tree.leaves()] for tree in syntree_pred]
+    constituencies = [tree.convert().linearize() for tree in syntree_pred]
+    depend_labels = [[leaf.type for leaf in tree.leaves()] for tree in syntree_pred]
+    if constituency:
+        return_dict["constituencies"] = dict(zip(ids, constituencies))
+    if dependency:
+        return_dict["dependency labels"] = dict(zip(ids, depend_labels))
+        return_dict["dependency heads"] = dict(zip(ids, depend_heads))
     return return_dict
